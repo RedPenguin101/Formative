@@ -8,9 +8,8 @@ A Clojure project is comprised of namespaces, with each namespace having a sourc
 
 == Tree representation of structure
 
-_Picture of zoomed out namespace view_
-
-_Picture of tree view_
+.The project and namespace tree views
+image::./docs/images/1_projandns.png[proj]
 
 Within Formative, the relationship between functions, the call graph, is represented as a tree. The nodes are functions and vars, and an edge represents a call between functions. This is the primary view the user is greeted with on opening a project. A tree has as it's nodes the functions and vars, grouped by namespace. The tree is structured vertically, so that if function A calls function B, function B will be displayed below function A on the call graph.
 
@@ -22,19 +21,22 @@ The intent is to give the programmer a visual representation of the structure of
 * 'messy' call trees
 * cases where the verticality rule is broken. That is where a function calls something that is in the same abstraction layer or above it.
 
-_picture of messy call graph, large abstraction jumps_
+.A messy call tree
+image::./docs/images/2_messy.png[messy]
 
 The user can navigate around the tree by left-clicking and dragging, and zoom in and out by mouse scroll.
 
 The nodes labels are the names of the var or function. Hovering over the node gives the docstring of the function if there is one (though there is an option to display the docstring as part of the node instead). Functions that have been specced (`s/fdef`) are specially denoted. If all the tests for a function are passing, or not, that is denoted too. Side effecting functions (those ending with a `!`) are specially denoted.
 
-_picture of node hover_
+.Hovering on a function brings up its definition
+image::./docs/images/3_nshover.png[proj]
 
 Clicking on a node opens the form editor for that node.
 
 == The form editor
 
-_picture of main editor_
+.The editor window
+image::./docs/images/4_editor.png[proj]
 
 The form editor is where the programmer edits individual functions and vars. Each editor contains a single function only. There are 4 parts to the editor.
 
@@ -55,23 +57,31 @@ Hovering over a function-call will cause the tool-tip for that function to pop-u
 
 Left-clicking when hovering over an element deletes the element, and replaces it with a cursor, where the programmer can start typing a new element. Left-clicking _between_ elements of a form inserts a cursor. 
 
-_picture of just after user has just clicked an element_
+.The view after the programmer has left-clicked 'form1'
+image::./docs/images/6_editorinsert.png[proj]
 
 No parens are inserted, but using the mouse wheel in this mode the programer can add various types of parens i.e. one scroll gives `()`, the second `[]`, the third `{}`, forth `#{}`, the fifth back to none. This order is configurable.
 
 By clicking and dragging a highlighted form, the programmer can move it around within the parent form, or outside of it.
 
-_picture of drag-clicking_
+.Dragging elements around the function
+image::./docs/images/7_editordrag.png[proj]
 
 The form is auto-formatted on edits, color-formatted, linted, there is suggestion and tooltips when editing.
 
 Given the nature of the editing method, it is not possible to create unbalanced forms.
 
+Normal refactor options are available:
+
+* extract function
+* inline function
+
 === Navigation between editor windows
 
 If the form being hovered over is a function, right clicking will close the current editor window and open a new one with that function. Shift + right click will open a new editor alongside the old one. Ctrl+Shift+right click will open windows for all the functions called by the function in the editor window. (within the current project, not in deps or the standard library).
 
-_pictures of different editor navigation method_
+.Programmer can navigate between editors, or open multiple
+image::./docs/images/8_editornavigate.png[proj]
 
 === Calling the form
 
@@ -91,7 +101,8 @@ The programmer can specify the output type as a 'diff', against either the previ
 
 The test window is hidden by default. Within the main editor that the programmer can click to open the window. When the window is closed the button indicates whether or not the tests are passing.
 
-_picture of open and closed test window_
+.The editor with open test window
+image::./docs/images/9_testwindow.png[proj]
 
 The tests can be example based or generative. Behind the scenes they will be stored in a separate file in the usual Clojure way, but from a UX perspective tests are always created with, accessed via and near to the function that they are testing. 
 
@@ -111,13 +122,12 @@ Within the editor, there is paredit-like shortcuts for navigating and manipulati
 
 Each namespace has a scratchpad window where the user can write and evaluate Clojure forms. This is equivalent to a rich comment block, and in the actual source code file is stored as a comment block at the bottom of the file (though the user doesn't need to add `comment` explicitly within Formative).
 
-_scratchpad picture_
+.The scratch window after evaluating a form
+image::./docs/images/10_scratch.png[proj]
 
 The editing paradigm within the scratchpad is more like the traditional text-editing one. Programmers can type what they want.
 
 However the same hover visual indicators as in the editor are present here, with the difference that left clicking sends the highlighted form for evaluation in the REPL - though the results are displayed inline. Inline results can be inspected in the same way the results from the call window can.
-
-_hover picture and post-evaluate picture_
 
 == REPL
 
@@ -129,11 +139,7 @@ Specs for functions, as we saw, are accessible only alongside the functions that
 
 Specs for data structures are stored with the namespace they are associated with and are first class in the same way that functions and vars are. That is, they are displayed as nodes on the tree and clicking on the node opens the editor for that spec.
 
-_specs in the tree_
-
 Within the tree view, where a function uses a spec, either inline or indirectly through the function spec, that is indicated on the tree with a line, just like a function call. By definition, the specs, with any custom predicate functions, are at the bottom of the tree for the namespace.
-
-_spec editor_
 
 The editor window for data specs looks very similar to the function window, with the exception that instead of a call window you have one where you can type data structures and see visually whether or not they conform to the spec. You can also see the results of generating random data from the spec.
 
@@ -149,7 +155,8 @@ Formative is essentially a layer of abstraction on top of a Clojure project and 
 
 Files are read and turned into namespace trees.
 
-_picture of correspondence between source file and formative_
+.Mapping the source files to the Formative elements
+image::./docs/images/11_filemapping.png[proj]
 
 When the programmer creates a new namespace in Formative, that will be saved as a source file.
 
