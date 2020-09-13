@@ -51,7 +51,8 @@ The emphasis is on form editing, not text editing.
 
 As the programmer mouse-hovers over the form, the thing they are hovering over is highlighted. Lists are highlighted when their parens are hovered over.
 
-_picture of hover-highlight_
+.Selections from hovering over different parts of the form
+image::./docs/images/5_hoverhighlight.png[proj]
 
 Hovering over a function-call will cause the tool-tip for that function to pop-up.
 
