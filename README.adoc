@@ -145,6 +145,8 @@ The editor window for data specs looks very similar to the function window, with
 
 == Mapping from source files to Formative structures
 
+Formative is essentially a layer of abstraction on top of a Clojure project and on top of the source files in that project. Each element within the source files has an equivalent structure within the data structure of the Formative backend.
+
 Files are read and turned into namespace trees.
 
 _picture of correspondence between source file and formative_
