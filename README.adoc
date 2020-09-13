@@ -1,0 +1,154 @@
+= Formative
+
+Formative is an experimental source code editor for Clojure. It eschews the 'lines of text' method of editing in favour of editing of s-expressions, one by one.
+
+It is designed to encourage the writing of simple, pure functions, set up in simple stratified layers.
+
+A Clojure project is comprised of namespaces, with each namespace having a source file associated with it. Within the file, as well as a namespace declaration, there are forms representing functions and vars. These functions and vars, within the context of a namespace, are the atomic units on which Formative operates. The relationships of these units can be represented as a graph.
+
+== Tree representation of structure
+
+_Picture of zoomed out namespace view_
+
+_Picture of tree view_
+
+Within Formative, the relationship between functions, the call graph, is represented as a tree. The nodes are functions and vars, and an edge represents a call between functions. This is the primary view the user is greeted with on opening a project. A tree has as it's nodes the functions and vars, grouped by namespace. The tree is structured vertically, so that if function A calls function B, function B will be displayed below function A on the call graph.
+
+The intent is to give the programmer a visual representation of the structure of the project. It is intended to highlight
+
+* The overall relation of namespaces
+* The layers of the call graph, to highlight missing abstractions and abstraction-barrier jumping calls (See Normand on abstraction barriers)
+* The publicly used API of the namespace (which should be functions at the top of the namespace)
+* 'messy' call trees
+* cases where the verticality rule is broken. That is where a function calls something that is in the same abstraction layer or above it.
+
+_picture of messy call graph, large abstraction jumps_
+
+The user can navigate around the tree by left-clicking and dragging, and zoom in and out by mouse scroll.
+
+The nodes labels are the names of the var or function. Hovering over the node gives the docstring of the function if there is one (though there is an option to display the docstring as part of the node instead). Functions that have been specced (`s/fdef`) are specially denoted. If all the tests for a function are passing, or not, that is denoted too. Side effecting functions (those ending with a `!`) are specially denoted.
+
+_picture of node hover_
+
+Clicking on a node opens the form editor for that node.
+
+== The form editor
+
+_picture of main editor_
+
+The form editor is where the programmer edits individual functions and vars. Each editor contains a single function only. There are 4 parts to the editor.
+
+* *The main window*: This is where the form being edited is displayed.
+* *The call window*: The programmer can specify arguments to the function and see the return value.
+* *The test window*: Hidden by default, in this window the programmer can specify tests for the function.
+* *The fspec window*: Hidden by default. In this window the programmer can define the spec for the function. 
+
+=== Editing the form
+
+The emphasis is on form editing, not text editing.
+
+As the programmer mouse-hovers over the form, the thing they are hovering over is highlighted. Lists are highlighted when their parens are hovered over.
+
+_picture of hover-highlight_
+
+Hovering over a function-call will cause the tool-tip for that function to pop-up.
+
+Left-clicking when hovering over an element deletes the element, and replaces it with a cursor, where the programmer can start typing a new element. Left-clicking _between_ elements of a form inserts a cursor. 
+
+_picture of just after user has just clicked an element_
+
+No parens are inserted, but using the mouse wheel in this mode the programer can add various types of parens i.e. one scroll gives `()`, the second `[]`, the third `{}`, forth `#{}`, the fifth back to none. This order is configurable.
+
+By clicking and dragging a highlighted form, the programmer can move it around within the parent form, or outside of it.
+
+_picture of drag-clicking_
+
+The form is auto-formatted on edits, color-formatted, linted, there is suggestion and tooltips when editing.
+
+Given the nature of the editing method, it is not possible to create unbalanced forms.
+
+=== Navigation between editor windows
+
+If the form being hovered over is a function, right clicking will close the current editor window and open a new one with that function. Shift + right click will open a new editor alongside the old one. Ctrl+Shift+right click will open windows for all the functions called by the function in the editor window. (within the current project, not in deps or the standard library).
+
+_pictures of different editor navigation method_
+
+=== Calling the form
+
+For functions, below the main editing window there is a smaller window which simply allows the programmer to call the function with various different arguments. As the programmer edits the form, the function will be re-called with the specified output and display the new output. The auto updating is disabled by default if the function is side-effecting (the function ends with a `!`).
+
+The arguments passed can either be typed data structures, or the programmer can use variables defined in other parts of the namespace, including the scratchpad.
+
+The call window also supports 'debug' features, such as storing and displaying intermediate results.
+
+The programmer can send the output to the scratchpad as a `def`.
+
+The programmer can choose between different display methods for the output, either pprinted edn, tabular, nested data explorer etc.
+
+The programmer can specify the output type as a 'diff', against either the previous evaluation or a var that has been stored.
+
+=== Testing the form
+
+The test window is hidden by default. Within the main editor that the programmer can click to open the window. When the window is closed the button indicates whether or not the tests are passing.
+
+_picture of open and closed test window_
+
+The tests can be example based or generative. Behind the scenes they will be stored in a separate file in the usual Clojure way, but from a UX perspective tests are always created with, accessed via and near to the function that they are testing. 
+
+Tests are rerun whenever the form is edited, and give visual indication of whether or not they are passing. Long running tests can be marked, which excludes them from auto-rerun, in which case they are marked to indicate when the function has been edited since the test was last run.
+
+Tests are run recursively, that is whenever a form is changed the tests for that function _and any functions that call it_ will be re-run, and if any of the tests of the other functions fail, the programmer will be notified and given a link to the broken function.
+
+=== Keyboard navigation
+
+Formative is intended to be used primarily with the mouse, including manipulation of forms, though it does have some keyboard support within the editor window.
+
+Alt+arrow changes the window of focus within the editor, between main, call, test etc.
+
+Within the editor, there is paredit-like shortcuts for navigating and manipulating forms.
+
+== Scratchpad
+
+Each namespace has a scratchpad window where the user can write and evaluate Clojure forms. This is equivalent to a rich comment block, and in the actual source code file is stored as a comment block at the bottom of the file (though the user doesn't need to add `comment` explicitly within Formative).
+
+_scratchpad picture_
+
+The editing paradigm within the scratchpad is more like the traditional text-editing one. Programmers can type what they want.
+
+However the same hover visual indicators as in the editor are present here, with the difference that left clicking sends the highlighted form for evaluation in the REPL - though the results are displayed inline. Inline results can be inspected in the same way the results from the call window can.
+
+_hover picture and post-evaluate picture_
+
+== REPL
+
+The intention is that most REPL interactions are done either via the editor (the call window), or via the scratchpad. There is a pure REPL window that can be accessed, though it is de-emphasized.
+
+== Specs
+
+Specs for functions, as we saw, are accessible only alongside the functions that they specify, and not visible independently on the tree.
+
+Specs for data structures are stored with the namespace they are associated with and are first class in the same way that functions and vars are. That is, they are displayed as nodes on the tree and clicking on the node opens the editor for that spec.
+
+_specs in the tree_
+
+Within the tree view, where a function uses a spec, either inline or indirectly through the function spec, that is indicated on the tree with a line, just like a function call. By definition, the specs, with any custom predicate functions, are at the bottom of the tree for the namespace.
+
+_spec editor_
+
+The editor window for data specs looks very similar to the function window, with the exception that instead of a call window you have one where you can type data structures and see visually whether or not they conform to the spec. You can also see the results of generating random data from the spec.
+
+== Imports and dependencies
+
+=== Project internal
+
+=== External
+
+== Mapping from source files to Formative structures
+
+Files are read and turned into namespace trees.
+
+_picture of correspondence between source file and formative_
+
+When the programmer creates a new namespace in Formative, that will be saved as a source file.
+
+The order of the functions in the source file will be determined by the call tree. Specs will always be stored at the top, the scratch pad in a comment block at the bottom.
